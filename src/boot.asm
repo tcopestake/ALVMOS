@@ -123,14 +123,7 @@ _load_skeleton_kernel:
     mov si, _disk_address_packet
     int 0x13
 
-    jc _load_skeleton_kernel_error
-
-    ; Save the kernel's entry point in the boot state struct.
-
-    mov ax, KERNEL_LOAD_OFFSET + ALVMKernelHeader_size
-    mov [_boot_state + BootState.KernelEntryOffset], ax
-
-    jmp _get_bios_memory_map
+    jnc _get_bios_memory_map
 
 _load_skeleton_kernel_error:
 
@@ -255,13 +248,9 @@ _enter_long_mode:
     or ebx, CR0_PROTECTED_MODE_BIT | CR0_PAGING_BIT
     mov cr0, ebx
 
-    ; Jump to long mode (update CS, etc.).
+_far_jump:
 
-    jmp 0x08:_boot_skeleton_kernel
-
-_boot_skeleton_kernel:
-    
-    hlt
+    jmp 0x08:_enter_skeleton_kernel
 
 _boot_state:
 
@@ -280,6 +269,11 @@ _temporary_idt:
 
 _temporary_gdt:
 
+    GDT_EXECUTABLE_BIT equ (0x01 << 43)
+    GDT_TYPE_BIT equ (0x01 << 44)
+    GDT_PRESENT_BIT equ (0x01 << 47)
+    GDT_LONG_MODE_FLAG_BIT equ (0x01 << 53)
+
     ; The null entry.
 
     dq 0x00
@@ -287,11 +281,6 @@ _temporary_gdt:
     ; The "code segment" (for 64-bit operation).
 
     .code:
-
-        GDT_EXECUTABLE_BIT equ (0x01 << 43)
-        GDT_TYPE_BIT equ (0x01 << 44)
-        GDT_PRESENT_BIT equ (0x01 << 47)
-        GDT_LONG_MODE_FLAG_BIT equ (0x01 << 53)
 
         dq GDT_EXECUTABLE_BIT | GDT_TYPE_BIT | GDT_PRESENT_BIT | GDT_LONG_MODE_FLAG_BIT
 
@@ -312,6 +301,15 @@ _disk_address_packet:
         at DiskAddressPacket.DestinationSegment, dw 0x0000
         at DiskAddressPacket.LBAAddress, dq 0x0000000000000001
     iend
+
+bits 64
+
+_enter_skeleton_kernel:
+
+    ; Jump to the C kernel entrypoint in long mode.
+
+    mov rdx, (KERNEL_LOAD_OFFSET + ALVMKernelHeader_size)
+    jmp rdx
 
 _mbr_padding:
 

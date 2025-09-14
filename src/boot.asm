@@ -3,9 +3,10 @@ bits 16
 
 ; At boot, there should be a ~29KiB block of free memory
 ; beginning at 0x0500. This should be enough space for 
-; a small stack, the page tables and the BIOS memory map.
+; a small stack (starting at 0x0900), the page tables and
+; the BIOS memory map.
 
-STACK_OFFSET equ 0x0500
+STACK_OFFSET equ 0x0900
 PAGE_MAPPING_OFFSET equ 0x1000
 BIOS_MEMORY_MAP_OFFSET equ 0x5000
 
@@ -19,7 +20,6 @@ KERNEL_LOAD_OFFSET equ 0x7E00
 ; used to pass info to the C kernel.)
 
 struc BootState
-    .KernelEntryOffset resw 1
     .KernelSize resw 1
     .MemoryMapOffset resw 1
     .MemoryMapSize resw 1

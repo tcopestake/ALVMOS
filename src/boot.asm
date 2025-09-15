@@ -49,8 +49,8 @@ _entry:
     xor dx, dx
     mov ds, dx
     mov es, dx
-    mov fs, ax
-    mov gs, ax
+    mov fs, dx
+    mov gs, dx
     mov ss, dx
 
     mov sp, STACK_OFFSET

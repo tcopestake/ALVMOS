@@ -1,9 +1,22 @@
 ENTRY(_start)
 
 SECTIONS {
-  . = 2M;
-  .text : { *(.text) }
-  .rodata : { *(.rodata) }
-  .data : { *(.data) }
-  .bss : { *(.bss COMMON) }
+  .text.start (0x7E04) : {
+    .out/kernel-entry.o( .text )
+  }
+
+  .rodata : {
+    *(.rodata .rodata.*)
+  }
+
+  .data : {
+    *(.data .data.*)
+  }
+
+  .bss : {
+    __bss_start = .;
+    *(.bss .bss.*)
+    *(COMMON)
+    __bss_end = .;
+  }
 }

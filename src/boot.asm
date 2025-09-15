@@ -20,7 +20,6 @@ KERNEL_LOAD_OFFSET equ 0x7E00
 ; used to pass info to the C kernel.)
 
 struc BootState
-    .KernelSize resw 1
     .MemoryMapOffset resw 1
     .MemoryMapSize resw 1
     .PageMappingOffset resw 1
@@ -114,7 +113,7 @@ _load_skeleton_kernel:
 
     ; bx should still be pointing to the kernel header.
     ; We just need to update the DAP with the sector count from the header.
-    
+
     mov cx, [bx + ALVMKernelHeader.KernelSectorCount]
     mov [_disk_address_packet + DiskAddressPacket.SectorCount], cx
 
@@ -255,11 +254,9 @@ _far_jump:
 _boot_state:
 
     istruc BootState
-        at BootState.KernelEntryOffset, dw 0x0000
-        at BootState.KernelSize, dw 0x0000
-        at BootState.MemoryMapOffset, dw 0x0000
+        at BootState.MemoryMapOffset, dw BIOS_MEMORY_MAP_OFFSET
         at BootState.MemoryMapSize, dw 0x0000
-        at BootState.PageMappingOffset, dw 0x0000
+        at BootState.PageMappingOffset, dw PAGE_MAPPING_OFFSET
     iend
 
 _temporary_idt:
@@ -308,6 +305,7 @@ _enter_skeleton_kernel:
 
     ; Jump to the C kernel entrypoint in long mode.
 
+    mov rdi, _boot_state
     mov rdx, (KERNEL_LOAD_OFFSET + ALVMKernelHeader_size)
     jmp rdx
 

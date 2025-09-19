@@ -133,10 +133,42 @@ _load_skeleton_kernel_error:
 
 _get_bios_memory_map:
 
-    ; @todo
-    ; mov ax, 0xE820
-    ; int 0x15
+    BIOS_MEMORY_SMAP equ 0x534D4150
 
+    mov edi, BIOS_MEMORY_MAP_OFFSET
+    mov edx, BIOS_MEMORY_SMAP
+    xor ebx, ebx
+
+    _get_next_bios_memory_map_entry:
+
+        mov eax, 0xE820
+        mov ecx, 24
+        int 0x15
+
+        jc _bios_memory_mapping_error
+
+        ; If EBX is 0, we're finished.
+
+        cmp ebx, 0
+        jz _setup_page_tables
+
+        inc word [_boot_state + BootState.MemoryMapSize]
+
+        ; @todo confirm CL isn't > 24 bytes.
+        ; @todo confirm EDI isn't growing out of bounds.
+
+        add edi, 24
+
+        jmp _get_next_bios_memory_map_entry
+
+_bios_memory_mapping_error:
+
+    ; @todo
+
+_bios_memory_mapped:
+
+    ; ...
+    
 _setup_page_tables:
 
     ; (The OS dev wiki was very helpful here.)

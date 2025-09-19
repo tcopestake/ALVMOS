@@ -1,0 +1,1 @@
+#define NULL_POINTER 0
